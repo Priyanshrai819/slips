@@ -1,0 +1,2097 @@
+================================================================================
+CS-321-VSC-P : FOUNDATION OF AI AND ML
+COMPLETE SLIP SOLUTIONS (ALL 25 SLIPS)
+Savitribai Phule Pune University - T.Y.B.Sc.(C.S.) Sem V
+================================================================================
+
+
+################################################################################
+SLIP 1
+################################################################################
+
+--- Q1) BFS for Monkey Banana Problem ---
+
+from collections import deque
+
+def bfs_monkey_banana():
+    start = "Monkey at Door"
+    goal = "Monkey Gets Banana"
+    queue = deque([(start, [start])])
+    visited = set()
+
+    while queue:
+        state, path = queue.popleft()
+        if state in visited:
+            continue
+        visited.add(state)
+        print(state)
+
+        if state == goal:
+            print("Goal Reached!")
+            print("Path:", " -> ".join(path))
+            return
+
+        nxt_map = {
+            "Monkey at Door": "Monkey at Box",
+            "Monkey at Box": "Box Under Banana",
+            "Box Under Banana": "Monkey Climbs Box",
+            "Monkey Climbs Box": "Monkey Gets Banana"
+        }
+        if state in nxt_map:
+            nxt = nxt_map[state]
+            queue.append((nxt, path + [nxt]))
+
+bfs_monkey_banana()
+
+
+--- Q2) A* Search Algorithm ---
+
+import heapq
+
+graph = {
+    'A': [('B', 1), ('C', 4)],
+    'B': [('D', 2), ('E', 5)],
+    'C': [('E', 1)],
+    'D': [('G', 3)],
+    'E': [('G', 1)],
+    'G': []
+}
+heuristic = {'A': 6, 'B': 5, 'C': 4, 'D': 3, 'E': 2, 'G': 0}
+
+def astar(start, goal):
+    heap = [(heuristic[start], 0, start, [start])]
+    visited = set()
+    while heap:
+        f, g, node, path = heapq.heappop(heap)
+        if node in visited:
+            continue
+        visited.add(node)
+        if node == goal:
+            print("Path:", path, "Cost:", g)
+            return
+        for nbr, w in graph[node]:
+            if nbr not in visited:
+                heapq.heappush(heap, (g + w + heuristic[nbr], g + w, nbr, path + [nbr]))
+
+astar('A', 'G')
+
+
+--- Q2 ALT) Map Coloring using CSP ---
+
+def is_safe(node, color, graph, colors):
+    for nbr in graph[node]:
+        if nbr in colors and colors[nbr] == color:
+            return False
+    return True
+
+def backtrack(graph, nodes, colors, idx, m):
+    if idx == len(nodes):
+        return True
+    node = nodes[idx]
+    for c in range(1, m + 1):
+        if is_safe(node, c, graph, colors):
+            colors[node] = c
+            if backtrack(graph, nodes, colors, idx + 1, m):
+                return True
+            del colors[node]
+    return False
+
+graph = {'A': ['B', 'C'], 'B': ['A', 'D'], 'C': ['A', 'D'], 'D': ['B', 'C']}
+colors = {}
+if backtrack(graph, list(graph.keys()), colors, 0, 3):
+    print("Colors:", colors)
+else:
+    print("No solution")
+
+
+--- Q3) VIVA ---
+Q: What is BFS?
+A: Breadth First Search is an uninformed search that explores all neighbors at the
+   current depth before moving to the next level, using a FIFO queue.
+
+Q: What is the time complexity of BFS?
+A: O(b^d) where b = branching factor, d = depth of goal.
+
+Q: What is A*?
+A: A* is an informed search using f(n) = g(n) + h(n), where g is actual cost from
+   start and h is heuristic estimate to goal.
+
+Q: What is a CSP?
+A: Constraint Satisfaction Problem consists of variables, domains, and constraints;
+   the goal is to assign values satisfying all constraints.
+
+Q: Difference between BFS and DFS?
+A: BFS uses a queue and explores level-by-level; DFS uses a stack (or recursion)
+   and explores depth-first.
+
+
+################################################################################
+SLIP 2
+################################################################################
+
+--- Q1) Water Jug Problem using BFS ---
+
+from collections import deque
+
+def water_jug(capA, capB, target):
+    start = (0, 0)
+    queue = deque([(start, [start])])
+    visited = set()
+
+    while queue:
+        (a, b), path = queue.popleft()
+        if (a, b) in visited:
+            continue
+        visited.add((a, b))
+
+        if a == target or b == target:
+            print("Solution found!")
+            for s in path:
+                print(s)
+            return
+
+        next_states = [
+            (capA, b), (a, capB), (0, b), (a, 0),
+            (max(0, a - (capB - b)), min(capB, a + b)),
+            (min(capA, a + b), max(0, b - (capA - a)))
+        ]
+        for ns in next_states:
+            if ns not in visited:
+                queue.append((ns, path + [ns]))
+
+water_jug(4, 3, 2)
+
+
+--- Q2) Backtracking for CSP (5-node graph) ---
+
+def is_safe(node, color, graph, colors):
+    for nbr in graph[node]:
+        if nbr in colors and colors[nbr] == color:
+            return False
+    return True
+
+def backtrack(graph, nodes, colors, idx, m):
+    if idx == len(nodes):
+        return True
+    node = nodes[idx]
+    for c in range(1, m + 1):
+        if is_safe(node, c, graph, colors):
+            colors[node] = c
+            if backtrack(graph, nodes, colors, idx + 1, m):
+                return True
+            del colors[node]
+    return False
+
+graph = {
+    1: [2, 3, 4, 5],
+    2: [1, 3, 4],
+    3: [1, 2, 4, 5],
+    4: [1, 2, 3, 5],
+    5: [1, 3, 4]
+}
+colors = {}
+if backtrack(graph, list(graph.keys()), colors, 0, 4):
+    print("Coloring:", colors)
+else:
+    print("No solution")
+
+
+--- Q2 ALT) Game Tree Representation ---
+
+class Node:
+    def __init__(self, value, children=None):
+        self.value = value
+        self.children = children or []
+
+def display(node, depth=0):
+    print("  " * depth + str(node.value))
+    for c in node.children:
+        display(c, depth + 1)
+
+leaf1 = Node(3); leaf2 = Node(5)
+leaf3 = Node(2); leaf4 = Node(9)
+min1 = Node("MIN", [leaf1, leaf2])
+min2 = Node("MIN", [leaf3, leaf4])
+root = Node("MAX", [min1, min2])
+display(root)
+
+
+--- Q3) VIVA ---
+Q: What is the Water Jug Problem?
+A: A classic AI problem where two jugs of capacities 4L and 3L must measure exactly 2L.
+
+Q: What is backtracking?
+A: A systematic search that builds solutions incrementally and abandons partial
+   solutions when they violate constraints.
+
+Q: What is a game tree?
+A: A tree representing all possible moves of a two-player game, with MAX and MIN levels.
+
+
+################################################################################
+SLIP 3
+################################################################################
+
+--- Q1) BFS Traversal for a Graph ---
+
+from collections import deque
+
+graph = {
+    1: [2, 3], 2: [4, 5], 3: [6, 7],
+    4: [8, 9], 5: [10, 11], 6: [12, 13], 7: [14, 15],
+    8: [], 9: [], 10: [], 11: [], 12: [], 13: [], 14: [], 15: []
+}
+
+def bfs(start):
+    visited, queue, order = set(), deque([start]), []
+    while queue:
+        node = queue.popleft()
+        if node not in visited:
+            visited.add(node)
+            order.append(node)
+            for nbr in graph[node]:
+                if nbr not in visited:
+                    queue.append(nbr)
+    return order
+
+print("BFS Order:", bfs(1))
+
+
+--- Q2) Alpha-Beta Pruning ---
+
+def alphabeta(depth, node, is_max, values, alpha, beta, max_depth):
+    if depth == max_depth:
+        return values[node]
+
+    if is_max:
+        best = -float('inf')
+        for i in range(2):
+            val = alphabeta(depth+1, node*2+i, False, values, alpha, beta, max_depth)
+            best = max(best, val)
+            alpha = max(alpha, best)
+            if beta <= alpha:
+                break
+        return best
+    else:
+        best = float('inf')
+        for i in range(2):
+            val = alphabeta(depth+1, node*2+i, True, values, alpha, beta, max_depth)
+            best = min(best, val)
+            beta = min(beta, best)
+            if beta <= alpha:
+                break
+        return best
+
+values = [3, 5, 2, 9, 0, 7]
+result = alphabeta(0, 0, True, values, -float('inf'), float('inf'), 2)
+print("Optimal value:", result)
+
+
+--- Q2 ALT) Propositional Logic ---
+
+def AND(a, b): return a and b
+def OR(a, b): return a or b
+def NOT(a): return not a
+
+P, Q = True, False
+print("P AND Q =", AND(P, Q))
+print("P OR Q =", OR(P, Q))
+print("NOT P =", NOT(P))
+
+
+--- Q3) VIVA ---
+Q: What is Alpha-Beta Pruning?
+A: An optimization of Minimax that prunes branches which cannot affect the final
+   decision, using alpha (best MAX can guarantee) and beta (best MIN can guarantee).
+
+Q: What is Propositional Logic?
+A: A logic system where statements are either True or False and combined with
+   AND, OR, NOT, IMPLIES.
+
+
+################################################################################
+SLIP 4
+################################################################################
+
+--- Q1) BFS State-Space Search (Start = A) ---
+
+from collections import deque
+
+graph = {
+    'A': ['B', 'C'],
+    'B': ['A', 'D'],
+    'C': ['A', 'E'],
+    'D': ['B', 'E'],
+    'E': ['C', 'D']
+}
+
+def bfs(start):
+    visited, queue, order = set(), deque([start]), []
+    while queue:
+        node = queue.popleft()
+        if node not in visited:
+            visited.add(node)
+            order.append(node)
+            for nbr in graph[node]:
+                if nbr not in visited:
+                    queue.append(nbr)
+    return order
+
+print("BFS from A:", bfs('A'))
+
+
+--- Q2) Predicate Logic ---
+
+humans = ["Ram", "Sita", "Rahul"]
+
+def is_human(x):
+    return x in humans
+
+def is_mortal(x):
+    return is_human(x)
+
+name = "Rahul"
+print("Person:", name)
+if is_human(name):
+    print(name, "is a Human.")
+if is_mortal(name):
+    print(name, "is Mortal.")
+
+
+--- Q2 ALT) Gaussian NB Classifier ---
+
+from sklearn.datasets import make_blobs
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score
+import numpy as np
+
+X, y = make_blobs(n_samples=200, centers=3, cluster_std=1.5, random_state=42)
+model = GaussianNB()
+model.fit(X, y)
+
+test = np.array([[-2, 5], [0, 0], [6, -0.3]])
+pred = model.predict(test)
+print("Predictions:", pred)
+print("Accuracy:", accuracy_score(y, model.predict(X)))
+
+
+--- Q3) VIVA ---
+Q: What is Predicate Logic?
+A: An extension of propositional logic using predicates, variables, constants,
+   and quantifiers (universal, existential).
+
+Q: What is a Gaussian NB classifier?
+A: A Naive Bayes variant assuming continuous features follow Gaussian distribution.
+
+
+################################################################################
+SLIP 5
+################################################################################
+
+--- Q1) Depth Limited Search (DLS) ---
+
+def dls(graph, node, goal, limit, visited=None, path=None):
+    if visited is None:
+        visited = set()
+        path = []
+    if node == goal:
+        print("Found:", path + [node])
+        return True
+    if limit <= 0:
+        return False
+    visited.add(node)
+    for nbr in graph[node]:
+        if nbr not in visited:
+            if dls(graph, nbr, goal, limit - 1, visited, path + [node]):
+                return True
+    return False
+
+graph = {
+    'A': ['B', 'C'],
+    'B': ['D', 'E'],
+    'C': ['F', 'G'],
+    'D': [], 'E': [], 'F': [], 'G': []
+}
+
+dls(graph, 'A', 'G', 3)
+
+
+--- Q2) Bernoulli NB Classifier ---
+
+from sklearn.datasets import make_classification
+from sklearn.naive_bayes import BernoulliNB
+
+X, y = make_classification(n_samples=300, n_features=2, n_informative=2,
+                           n_redundant=0, n_classes=2, random_state=42)
+
+model = BernoulliNB()
+model.fit(X, y)
+test = [[0, 0], [0, 1], [1, 0], [1, 1]]
+print("Predictions:", model.predict(test))
+
+
+--- Q2 ALT) SVM on Iris dataset ---
+
+from sklearn.svm import SVC
+
+X = [[5.1,3.5,1.4,0.2],[4.9,3.0,1.4,0.2],[4.7,3.2,1.3,0.2],
+     [4.6,3.1,1.5,0.2],[5.0,3.6,1.4,0.2],[7.0,3.2,4.7,1.4],
+     [6.4,3.2,4.5,1.5],[6.9,3.1,4.9,1.5],[6.3,3.3,6.0,2.5],[5.8,2.7,5.1,1.9]]
+y = [0,0,0,0,0,1,1,1,2,2]
+X_test = [[5.2,3.4,1.5,0.2],[6.5,3.0,4.6,1.5],[6.2,3.0,5.2,2.0]]
+
+model = SVC(kernel='linear')
+model.fit(X, y)
+print("Predictions:", model.predict(X_test))
+
+
+--- Q3) VIVA ---
+Q: What is DLS?
+A: Depth Limited Search is DFS with a predefined depth limit to avoid infinite paths.
+
+Q: What is Bernoulli NB?
+A: A Naive Bayes variant for binary/boolean features.
+
+Q: What is SVM?
+A: Support Vector Machine finds the optimal hyperplane maximizing margin between classes.
+
+
+################################################################################
+SLIP 6
+################################################################################
+
+--- Q1) DFS Traversal for a Graph ---
+
+def dfs(graph, node, visited=None):
+    if visited is None:
+        visited = set()
+    if node not in visited:
+        print(node, end=" ")
+        visited.add(node)
+        for nbr in graph[node]:
+            dfs(graph, nbr, visited)
+
+graph = {
+    'A': ['B', 'C'],
+    'B': ['D', 'E'],
+    'C': ['F'],
+    'D': [], 'E': [], 'F': []
+}
+print("DFS:", end=" ")
+dfs(graph, 'A')
+print()
+
+
+--- Q2) Non-Linear SVM with RBF Kernel ---
+
+from sklearn.svm import SVC
+import numpy as np
+
+X = np.array([[1, 2], [2, 3], [5, 5]])
+y = np.array([0, 0, 1])
+
+model = SVC(kernel='rbf')
+model.fit(X, y)
+print("Prediction for [4,4]:", model.predict([[4, 4]]))
+
+
+--- Q2 ALT) Basic ANN ---
+
+from sklearn.neural_network import MLPClassifier
+
+X = [[3,1.5],[2,1],[4,1.5],[3,4],[3.5,0.5],[2,0.5],[5.5,1],[1,1]]
+y = [0,1,0,1,0,1,1,0]
+
+model = MLPClassifier(hidden_layer_sizes=(5,), max_iter=2000,
+                      learning_rate_init=0.1, random_state=42)
+model.fit(X, y)
+print("Accuracy:", model.score(X, y))
+print("Predictions:", model.predict(X))
+
+
+--- Q3) VIVA ---
+Q: What is DFS?
+A: Depth First Search explores as far as possible along each branch before backtracking.
+
+Q: What is RBF kernel?
+A: Radial Basis Function kernel maps data to higher dimension for non-linear separation.
+
+Q: What is an ANN?
+A: Artificial Neural Network is a computing system inspired by biological neural
+   networks with input, hidden, and output layers.
+
+
+################################################################################
+SLIP 7
+################################################################################
+
+--- Q1) A* Search (V1 to V6) ---
+
+import heapq
+
+graph = {
+    'V1': [('V2', 2), ('V3', 4)],
+    'V2': [('V1', 2), ('V4', 3)],
+    'V3': [('V1', 4), ('V4', 1), ('V5', 5)],
+    'V4': [('V2', 3), ('V3', 1), ('V6', 2)],
+    'V5': [('V3', 5), ('V6', 1)],
+    'V6': [('V4', 2), ('V5', 1)]
+}
+
+def astar(start, goal):
+    heap = [(0, start, [start])]
+    visited = set()
+    while heap:
+        cost, node, path = heapq.heappop(heap)
+        if node in visited:
+            continue
+        visited.add(node)
+        if node == goal:
+            print("Path:", path, "Cost:", cost)
+            return
+        for nbr, w in graph[node]:
+            if nbr not in visited:
+                heapq.heappush(heap, (cost + w, nbr, path + [nbr]))
+
+astar('V1', 'V6')
+
+
+--- Q2) Map Coloring using CSP ---
+
+def is_safe(node, color, graph, colors):
+    for nbr in graph[node]:
+        if nbr in colors and colors[nbr] == color:
+            return False
+    return True
+
+def backtrack(graph, nodes, colors, idx, m):
+    if idx == len(nodes):
+        return True
+    node = nodes[idx]
+    for c in range(1, m + 1):
+        if is_safe(node, c, graph, colors):
+            colors[node] = c
+            if backtrack(graph, nodes, colors, idx + 1, m):
+                return True
+            del colors[node]
+    return False
+
+graph = {
+    'A': ['B', 'C'],
+    'B': ['A', 'D'],
+    'C': ['A', 'E'],
+    'D': ['B', 'E'],
+    'E': ['C', 'D']
+}
+colors = {}
+if backtrack(graph, list(graph.keys()), colors, 0, 3):
+    print("Colors:", colors)
+else:
+    print("No solution")
+
+
+--- Q2 ALT) Tic-Tac-Toe with Minimax ---
+
+def winner(b):
+    lines = b + [list(x) for x in zip(*b)] + \
+            [[b[0][0],b[1][1],b[2][2]], [b[0][2],b[1][1],b[2][0]]]
+    for l in lines:
+        if l[0] == l[1] == l[2] and l[0] != ' ':
+            return l[0]
+    return None
+
+def minimax(b, is_max):
+    w = winner(b)
+    if w == 'X': return 1
+    if w == 'O': return -1
+    if all(c != ' ' for row in b for c in row): return 0
+
+    if is_max:
+        best = -float('inf')
+        for i in range(3):
+            for j in range(3):
+                if b[i][j] == ' ':
+                    b[i][j] = 'X'
+                    best = max(best, minimax(b, False))
+                    b[i][j] = ' '
+        return best
+    else:
+        best = float('inf')
+        for i in range(3):
+            for j in range(3):
+                if b[i][j] == ' ':
+                    b[i][j] = 'O'
+                    best = min(best, minimax(b, True))
+                    b[i][j] = ' '
+        return best
+
+board = [['X','O','X'],['O','O',' '],[' ',' ',' ']]
+print("Optimal value for X:", minimax(board, True))
+
+
+--- Q3) VIVA ---
+Q: What is a heuristic?
+A: A heuristic is an estimate of cost from a state to the goal, denoted h(n).
+
+Q: What is Minimax?
+A: An algorithm for two-player games that assumes the opponent plays optimally;
+   MAX maximizes, MIN minimizes.
+
+
+################################################################################
+SLIP 8
+################################################################################
+
+--- Q1) 4-Puzzle Problem using A* ---
+
+import heapq
+
+def h(state, goal):
+    return sum(1 for i in range(4) if state[i] != goal[i] and state[i] != 0)
+
+def neighbors(state):
+    state = list(state)
+    i = state.index(0)
+    moves = []
+    if i >= 2:
+        s = state[:]; s[i], s[i-2] = s[i-2], s[i]; moves.append(tuple(s))
+    if i <= 1:
+        s = state[:]; s[i], s[i+2] = s[i+2], s[i]; moves.append(tuple(s))
+    if i % 2 == 1:
+        s = state[:]; s[i], s[i-1] = s[i-1], s[i]; moves.append(tuple(s))
+    if i % 2 == 0:
+        s = state[:]; s[i], s[i+1] = s[i+1], s[i]; moves.append(tuple(s))
+    return moves
+
+def astar(start, goal):
+    heap = [(h(start, goal), 0, start)]
+    visited = set()
+    while heap:
+        f, g, state = heapq.heappop(heap)
+        if state in visited:
+            continue
+        visited.add(state)
+        if state == goal:
+            print("Solved in", g, "moves")
+            return
+        for nxt in neighbors(state):
+            if nxt not in visited:
+                heapq.heappush(heap, (g+1+h(nxt, goal), g+1, nxt))
+
+astar((1, 2, 3, 0), (1, 2, 0, 3))
+
+
+--- Q2) Compare Minimax and Alpha-Beta Pruning ---
+
+def minimax(depth, node, is_max, values, max_depth):
+    if depth == max_depth:
+        return values[node]
+    if is_max:
+        return max(minimax(depth+1, node*2, False, values, max_depth),
+                   minimax(depth+1, node*2+1, False, values, max_depth))
+    else:
+        return min(minimax(depth+1, node*2, True, values, max_depth),
+                   minimax(depth+1, node*2+1, True, values, max_depth))
+
+def alphabeta(depth, node, is_max, values, alpha, beta, max_depth):
+    if depth == max_depth:
+        return values[node]
+    if is_max:
+        best = -float('inf')
+        for i in range(2):
+            val = alphabeta(depth+1, node*2+i, False, values, alpha, beta, max_depth)
+            best = max(best, val); alpha = max(alpha, best)
+            if beta <= alpha: break
+        return best
+    else:
+        best = float('inf')
+        for i in range(2):
+            val = alphabeta(depth+1, node*2+i, True, values, alpha, beta, max_depth)
+            best = min(best, val); beta = min(beta, best)
+            if beta <= alpha: break
+        return best
+
+values = [3, 5, 2, 9, 0, 7]
+print("Minimax:", minimax(0, 0, True, values, 2))
+print("Alpha-Beta:", alphabeta(0, 0, True, values, -float('inf'), float('inf'), 2))
+
+
+--- Q2 ALT) Rule-Based Expert System ---
+
+def expert_system():
+    print("=== Simple Medical Expert System ===")
+    temp = float(input("Enter body temperature (C): "))
+    cough = input("Do you have cough? (yes/no): ").lower()
+    headache = input("Do you have headache? (yes/no): ").lower()
+
+    if temp > 38:
+        if cough == "yes":
+            print("Diagnosis: Flu")
+        elif headache == "yes":
+            print("Diagnosis: Viral Fever")
+        else:
+            print("Diagnosis: Fever")
+    else:
+        print("Diagnosis: No major illness")
+
+expert_system()
+
+
+--- Q3) VIVA ---
+Q: What is a rule-based expert system?
+A: An AI system that uses IF-THEN rules and an inference engine to make decisions.
+
+Q: Difference between Minimax and Alpha-Beta?
+A: Alpha-Beta is an optimized Minimax that prunes branches which cannot affect
+   the final decision, reducing computation.
+
+
+################################################################################
+SLIP 9
+################################################################################
+
+--- Q1) Hill Climbing ---
+
+def f(x):
+    return -x**2 + 4*x
+
+def hill_climb(start):
+    current = start
+    while True:
+        neighbors = [current - 0.1, current + 0.1]
+        best = current
+        for n in neighbors:
+            if f(n) > f(best):
+                best = n
+        if best == current:
+            break
+        current = best
+    return current, f(current)
+
+x, val = hill_climb(0)
+print("Max at x =", x, "value =", val)
+
+
+--- Q2) Forward Chaining ---
+
+facts = {"temperature_high", "cough"}
+rules = [
+    ({"temperature_high"}, "fever"),
+    ({"fever", "cough"}, "flu"),
+    ({"flu"}, "rest_recommended")
+]
+
+changed = True
+while changed:
+    changed = False
+    for conditions, conclusion in rules:
+        if conditions.issubset(facts) and conclusion not in facts:
+            facts.add(conclusion)
+            print("Derived:", conclusion)
+            changed = True
+
+print("Final facts:", facts)
+
+
+--- Q2 ALT) Decision Tree Classifier (Diabetes) ---
+
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+data = {
+    'Pregnancies': [6,1,8,1,0,5,3,10,2,1],
+    'Glucose': [148,85,183,89,137,116,78,115,197,189],
+    'BloodPressure': [72,66,64,66,40,74,50,0,70,60],
+    'SkinThickness': [35,29,0,23,35,0,32,0,45,23],
+    'Insulin': [0,0,0,94,168,0,88,0,543,846],
+    'BMI': [33.6,26.6,23.3,28.1,43.1,25.6,31.0,35.3,30.5,30.1],
+    'DiabetesPedigreeFunction': [0.627,0.351,0.672,0.167,2.288,0.201,0.248,0.134,0.158,0.349],
+    'Age': [50,31,32,21,33,30,26,29,53,41],
+    'Outcome': [1,0,1,0,1,0,1,0,1,1]
+}
+df = pd.DataFrame(data)
+X = df.drop('Outcome', axis=1)
+y = df['Outcome']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+for crit in ['gini', 'entropy']:
+    for depth in [2, 3, 4]:
+        model = DecisionTreeClassifier(criterion=crit, max_depth=depth, random_state=42)
+        model.fit(X_train, y_train)
+        pred = model.predict(X_test)
+        print(f"{crit}, depth={depth}, Accuracy={accuracy_score(y_test, pred):.4f}")
+
+
+--- Q3) VIVA ---
+Q: What is Hill Climbing?
+A: A local search algorithm that iteratively moves to a better neighbor until no
+   improvement is possible.
+
+Q: What is Forward Chaining?
+A: A data-driven reasoning method that starts with known facts and applies rules
+   to derive new facts.
+
+Q: What is a Decision Tree?
+A: A supervised learning model that splits data based on attribute conditions to
+   make predictions.
+
+
+################################################################################
+SLIP 10
+################################################################################
+
+--- Q1) Means-End Analysis ---
+
+def means_end_analysis():
+    print("Robot moving from Room A to Room D")
+    current = "Room A"
+    goal = "Room D"
+    order = ["Room A", "Room B", "Room C", "Room D"]
+
+    while current != goal:
+        print("Current:", current, "| Difference: not at goal")
+        idx = order.index(current)
+        current = order[idx + 1]
+        print("Action: Move to", current)
+    print("Goal Reached!")
+
+means_end_analysis()
+
+
+--- Q2) Random Forest Classifier ---
+
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
+
+data = {
+    'Study_Hours': [2,3,4,5,6,7,1,2,5,8],
+    'Attendance': [60,65,70,75,80,85,55,62,78,90],
+    'Assignment_Score': [55,60,65,70,75,80,50,58,72,85],
+    'Result': ['Fail','Fail','Pass','Pass','Pass','Pass','Fail','Fail','Pass','Pass']
+}
+df = pd.DataFrame(data)
+le = LabelEncoder()
+X = df[['Study_Hours', 'Attendance', 'Assignment_Score']]
+y = le.fit_transform(df['Result'])
+
+model = RandomForestClassifier(n_estimators=10, random_state=42)
+model.fit(X, y)
+pred = model.predict(X)
+print("Accuracy:", (pred == y).mean())
+
+
+--- Q2 ALT) SVM with Pipeline ---
+
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import LinearSVC
+
+X = [[5.1,3.5,1.4,0.2],[4.9,3.0,1.4,0.2],[4.7,3.2,1.3,0.2],
+     [4.6,3.1,1.5,0.2],[5.0,3.6,1.4,0.2],[7.0,3.2,4.7,1.4],
+     [6.4,3.2,4.5,1.5],[6.9,3.1,4.9,1.5],[5.5,2.3,4.0,1.3],[6.5,2.8,4.6,1.5]]
+y = [0,0,0,0,0,1,1,1,1,1]
+
+pipe = Pipeline([('scaler', StandardScaler()),
+                 ('svm', LinearSVC(C=1, loss='hinge', max_iter=5000))])
+pipe.fit(X, y)
+print("Predictions:", pipe.predict(X))
+
+
+--- Q3) VIVA ---
+Q: What is Means-End Analysis?
+A: A problem-solving technique that compares current state to goal, finds the
+   difference, and applies operators to reduce it.
+
+Q: What is Random Forest?
+A: An ensemble of decision trees trained on random subsets; predictions use
+   majority voting.
+
+
+################################################################################
+SLIP 11
+################################################################################
+
+--- Q1) Compare Minimax and Alpha-Beta Pruning ---
+
+def minimax(depth, node, is_max, values, max_depth):
+    if depth == max_depth:
+        return values[node]
+    if is_max:
+        return max(minimax(depth+1, node*2, False, values, max_depth),
+                   minimax(depth+1, node*2+1, False, values, max_depth))
+    else:
+        return min(minimax(depth+1, node*2, True, values, max_depth),
+                   minimax(depth+1, node*2+1, True, values, max_depth))
+
+def alphabeta(depth, node, is_max, values, alpha, beta, max_depth):
+    if depth == max_depth:
+        return values[node]
+    if is_max:
+        best = -float('inf')
+        for i in range(2):
+            val = alphabeta(depth+1, node*2+i, False, values, alpha, beta, max_depth)
+            best = max(best, val); alpha = max(alpha, best)
+            if beta <= alpha: break
+        return best
+    else:
+        best = float('inf')
+        for i in range(2):
+            val = alphabeta(depth+1, node*2+i, True, values, alpha, beta, max_depth)
+            best = min(best, val); beta = min(beta, best)
+            if beta <= alpha: break
+        return best
+
+values = [3, 5, 2, 9, 0, 7]
+print("Minimax result:", minimax(0, 0, True, values, 2))
+print("Alpha-Beta result:", alphabeta(0, 0, True, values, -float('inf'), float('inf'), 2))
+
+
+--- Q2) Backward Chaining ---
+
+facts = {"cough", "cold"}
+rules = [({"cough", "cold"}, "fever")]
+
+def backward(goal, facts, rules):
+    if goal in facts:
+        return True
+    for conds, concl in rules:
+        if concl == goal:
+            if all(backward(c, facts, rules) for c in conds):
+                return True
+    return False
+
+print("Can prove fever?", backward("fever", facts, rules))
+
+
+--- Q2 ALT) Random Forest on Car Evaluation ---
+
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+data = {
+    'buying': ['vhigh']*10,
+    'maint': ['vhigh']*10,
+    'doors': ['2','2','2','2','2','2','2','2','2','4'],
+    'persons': ['2']*10,
+    'lug_boot': ['small','small','small','med','med','med','big','big','big','small'],
+    'safety': ['low','med','high','low','med','high','low','med','high','low'],
+    'class': ['unacc']*10
+}
+df = pd.DataFrame(data)
+X = df.drop('class', axis=1)
+y = df['class']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+X_train = pd.get_dummies(X_train)
+X_test = pd.get_dummies(X_test).reindex(columns=X_train.columns, fill_value=0)
+
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+print("Accuracy:", accuracy_score(y_test, model.predict(X_test)))
+
+
+--- Q3) VIVA ---
+Q: What is Backward Chaining?
+A: A goal-driven reasoning method that starts from the goal and works backward to
+   find supporting facts.
+
+Q: What is a Random Forest?
+A: An ensemble learning method using multiple decision trees for classification.
+
+
+################################################################################
+SLIP 12
+################################################################################
+
+--- Q1) BFS for Monkey Banana ---
+
+from collections import deque
+
+def bfs_monkey():
+    start = "Monkey at Door"
+    goal = "Monkey Gets Banana"
+    q = deque([(start, [start])])
+    visited = set()
+    while q:
+        state, path = q.popleft()
+        if state in visited: continue
+        visited.add(state)
+        print(state)
+        if state == goal:
+            print("Goal found! Path:", path)
+            return
+        nxt_map = {
+            "Monkey at Door": "Monkey at Box",
+            "Monkey at Box": "Box Under Banana",
+            "Box Under Banana": "Monkey Climbs Box",
+            "Monkey Climbs Box": "Monkey Gets Banana"
+        }
+        q.append((nxt_map[state], path + [nxt_map[state]]))
+
+bfs_monkey()
+
+
+--- Q2) Compare Linear SVM and Non-Linear SVM ---
+
+from sklearn.svm import SVC
+import numpy as np
+
+X = np.array([[1,2],[2,3],[3,1],[4,2],[5,5],[6,6],[7,4],[8,5]])
+y = np.array([0,0,0,0,1,1,1,1])
+
+linear = SVC(kernel='linear'); linear.fit(X, y)
+rbf = SVC(kernel='rbf'); rbf.fit(X, y)
+
+print("Linear SVM accuracy:", linear.score(X, y))
+print("RBF SVM accuracy:", rbf.score(X, y))
+
+
+--- Q2 ALT) ANN for Linear Regression ---
+
+import numpy as np
+from sklearn.neural_network import MLPRegressor
+from sklearn.metrics import mean_squared_error
+
+X = np.array([[1],[2],[3],[4],[5],[6],[7],[8]])
+y = np.array([2,4,6,8,10,12,14,16])
+
+model = MLPRegressor(hidden_layer_sizes=(10,), max_iter=2000, random_state=42)
+model.fit(X, y)
+print("Predictions:", model.predict(X))
+print("MSE:", mean_squared_error(y, model.predict(X)))
+
+
+--- Q3) VIVA ---
+Q: What is Linear SVM?
+A: An SVM that uses a straight hyperplane to separate linearly separable data.
+
+Q: What is Non-Linear SVM?
+A: An SVM that uses kernel functions (RBF, polynomial) to map data to higher
+   dimensions for non-linear separation.
+
+
+################################################################################
+SLIP 13
+################################################################################
+
+(This page contains only a large numeric dump with no programming question.
+ No solution required.)
+
+
+################################################################################
+SLIP 14
+################################################################################
+
+--- Q1) BFS Traversal for a Graph (V1..V6) ---
+
+from collections import deque
+
+graph = {
+    'V1': ['V2', 'V3', 'V5'],
+    'V2': ['V1', 'V4'],
+    'V3': ['V1', 'V6'],
+    'V4': ['V2', 'V5'],
+    'V5': ['V1', 'V4', 'V6'],
+    'V6': ['V3', 'V5']
+}
+
+def bfs(start):
+    visited, q, order = set(), deque([start]), []
+    while q:
+        node = q.popleft()
+        if node not in visited:
+            visited.add(node)
+            order.append(node)
+            for nbr in graph[node]:
+                if nbr not in visited:
+                    q.append(nbr)
+    return order
+
+print("BFS:", bfs('V1'))
+
+
+--- Q2) Supervised vs Unsupervised Learning ---
+
+from sklearn.datasets import make_classification, make_blobs
+from sklearn.linear_model import LogisticRegression
+from sklearn.cluster import KMeans
+
+X_sup, y_sup = make_classification(n_samples=100, n_features=2, n_informative=2,
+                                    n_redundant=0, random_state=42)
+lr = LogisticRegression(); lr.fit(X_sup, y_sup)
+print("Supervised Accuracy:", lr.score(X_sup, y_sup))
+
+X_unsup, _ = make_blobs(n_samples=100, centers=3, random_state=42)
+km = KMeans(n_clusters=3, n_init=10, random_state=42); km.fit(X_unsup)
+print("Unsupervised Cluster centers:\n", km.cluster_centers_)
+
+
+--- Q2 ALT) Ontological Engineering ---
+
+class Animal:
+    def __init__(self, name): self.name = name
+
+class Mammal(Animal):
+    def __init__(self, name, fur=True):
+        super().__init__(name)
+        self.fur = fur
+
+class Dog(Mammal):
+    def __init__(self, name): super().__init__(name)
+
+d = Dog("Tommy")
+print("Name:", d.name, "| Fur:", d.fur, "| is Mammal:", isinstance(d, Mammal))
+
+
+--- Q3) VIVA ---
+Q: What is supervised learning?
+A: Learning from labeled data where input-output pairs are known.
+
+Q: What is unsupervised learning?
+A: Learning from unlabeled data to find hidden patterns or groups.
+
+Q: What is ontology?
+A: A formal representation of concepts, properties, and relationships in a domain.
+
+
+################################################################################
+SLIP 15
+################################################################################
+
+--- Q1) DFS State-Space Search (Start = 1) ---
+
+def dfs(graph, node, visited=None):
+    if visited is None:
+        visited = set()
+    if node not in visited:
+        print(node, end=" ")
+        visited.add(node)
+        for nbr in graph[node]:
+            dfs(graph, nbr, visited)
+
+graph = {
+    1: [2, 3],
+    2: [1, 4],
+    3: [1, 5],
+    4: [2, 6],
+    5: [3, 6],
+    6: [4, 5]
+}
+print("DFS from 1:", end=" ")
+dfs(graph, 1)
+print()
+
+
+--- Q2) Objective Functions in Clustering ---
+
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, davies_bouldin_score
+
+X, _ = make_blobs(n_samples=300, centers=4, cluster_std=1.0, random_state=42)
+
+inertias, sil_scores, db_scores = [], [], []
+K_range = range(2, 11)
+
+for k in K_range:
+    km = KMeans(n_clusters=k, n_init=10, random_state=42)
+    labels = km.fit_predict(X)
+    inertias.append(km.inertia_)
+    sil_scores.append(silhouette_score(X, labels))
+    db_scores.append(davies_bouldin_score(X, labels))
+
+plt.figure(figsize=(12, 4))
+plt.subplot(1, 3, 1); plt.plot(K_range, inertias, 'bo-'); plt.title("Elbow (WCSS)")
+plt.subplot(1, 3, 2); plt.plot(K_range, sil_scores, 'go-'); plt.title("Silhouette")
+plt.subplot(1, 3, 3); plt.plot(K_range, db_scores, 'ro-'); plt.title("Davies-Bouldin")
+plt.tight_layout()
+plt.show()
+
+
+--- Q2 ALT) Knowledge Base using Rules and Facts ---
+
+facts = {"Rudra has cough", "Rudra has cold"}
+rules = [
+    ({"Rudra has cough", "Rudra has cold"}, "Rudra may have fever")
+]
+
+def forward_chain(facts, rules):
+    changed = True
+    while changed:
+        changed = False
+        for conds, concl in rules:
+            if conds.issubset(facts) and concl not in facts:
+                facts.add(concl)
+                print("Derived:", concl)
+                changed = True
+    return facts
+
+print("Final KB:", forward_chain(facts, rules))
+
+
+--- Q3) VIVA ---
+Q: What is WCSS?
+A: Within-Cluster Sum of Squares - the sum of squared distances between points
+   and their cluster centroids.
+
+Q: What is Silhouette Coefficient?
+A: A measure of how similar a point is to its own cluster compared to other
+   clusters (range -1 to 1).
+
+Q: What is Davies-Bouldin Index?
+A: A metric for evaluating clustering; lower values indicate better clustering.
+
+
+################################################################################
+SLIP 16
+################################################################################
+
+--- Q1) Depth Limited Search (DLS) ---
+
+def dls(graph, node, goal, limit, visited=None):
+    if visited is None:
+        visited = set()
+    if node == goal:
+        print("Goal found at:", node)
+        return True
+    if limit <= 0:
+        return False
+    visited.add(node)
+    for nbr in graph[node]:
+        if nbr not in visited:
+            if dls(graph, nbr, goal, limit - 1, visited):
+                return True
+    return False
+
+graph = {
+    'A': ['B', 'C'],
+    'B': ['D', 'E'],
+    'C': ['F', 'G'],
+    'D': [], 'E': [], 'F': [], 'G': []
+}
+dls(graph, 'A', 'G', 3)
+
+
+--- Q2) Backward Chaining ---
+
+facts = {"cough", "cold"}
+rules = [({"cough", "cold"}, "fever")]
+
+def backward(goal, facts, rules, depth=0):
+    print("  " * depth + "Goal:", goal)
+    if goal in facts:
+        print("  " * depth + "-> Found in facts")
+        return True
+    for conds, concl in rules:
+        if concl == goal:
+            if all(backward(c, facts, rules, depth + 1) for c in conds):
+                return True
+    return False
+
+print("Result:", backward("fever", facts, rules))
+
+
+--- Q2 ALT) K-Means on country_data.csv ---
+
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+data = {
+    'child_mortality': [50, 30, 80, 20, 60, 40, 90, 25, 70, 35],
+    'exports': [30, 50, 20, 60, 40, 55, 15, 65, 25, 45],
+    'health': [5, 7, 3, 9, 6, 8, 2, 10, 4, 7],
+    'imports': [35, 55, 25, 65, 45, 60, 20, 70, 30, 50],
+    'income': [20000, 40000, 10000, 60000, 30000, 50000, 8000, 70000, 15000, 45000],
+    'inflation': [5, 3, 8, 2, 6, 4, 10, 1, 7, 3],
+    'life_expectancy': [65, 75, 55, 80, 70, 78, 50, 82, 60, 76],
+    'total_fer': [3, 2, 5, 1.5, 4, 2.5, 6, 1.2, 4.5, 2.2],
+    'gdp': [2000, 10000, 800, 20000, 5000, 15000, 500, 25000, 1200, 12000]
+}
+df = pd.DataFrame(data)
+X = df.select_dtypes(include='number')
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+inertias = []
+for k in range(1, 11):
+    km = KMeans(n_clusters=k, n_init=10, random_state=42)
+    km.fit(X_scaled)
+    inertias.append(km.inertia_)
+plt.plot(range(1, 11), inertias, 'bo-')
+plt.title("Elbow Method")
+plt.show()
+
+km = KMeans(n_clusters=3, n_init=10, random_state=42)
+labels = km.fit_predict(X_scaled)
+print("Cluster labels:", labels)
+
+
+--- Q3) VIVA ---
+Q: What is K-Means?
+A: An unsupervised algorithm that partitions data into K clusters by minimizing
+   distance to centroids.
+
+Q: What is the Elbow method?
+A: A technique to find optimal K by plotting WCSS against K and looking for an elbow.
+
+Q: What is Backward Chaining?
+A: Goal-driven reasoning starting from the goal and working backward to find
+   supporting facts.
+
+
+################################################################################
+SLIP 17
+################################################################################
+
+--- Q1) Best First Search ---
+
+import heapq
+
+graph = {
+    'A': ['B', 'C'],
+    'B': ['D', 'E'],
+    'C': ['E', 'F'],
+    'D': ['F'],
+    'E': ['F'],
+    'F': []
+}
+heuristic = {'A': 6, 'B': 5, 'C': 3, 'D': 2, 'E': 1, 'F': 0}
+
+def best_first(start, goal):
+    heap = [(heuristic[start], start, [start])]
+    visited = set()
+    while heap:
+        h, node, path = heapq.heappop(heap)
+        if node in visited: continue
+        visited.add(node)
+        print("Visit:", node)
+        if node == goal:
+            print("Goal! Path:", path)
+            return
+        for nbr in graph[node]:
+            if nbr not in visited:
+                heapq.heappush(heap, (heuristic[nbr], nbr, path + [nbr]))
+
+best_first('A', 'F')
+
+
+--- Q2) Propositional Logic with AND, OR, IMPLIES ---
+
+def AND(a, b): return a and b
+def OR(a, b): return a or b
+def NOT(a): return not a
+def IMPLIES(a, b): return (not a) or b
+
+P, Q = True, False
+print("P AND Q =", AND(P, Q))
+print("P OR Q =", OR(P, Q))
+print("NOT P =", NOT(P))
+print("P IMPLIES Q =", IMPLIES(P, Q))
+
+
+--- Q2 ALT) Euclidean Distance ---
+
+import math
+
+def euclidean(a, b):
+    return math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b)))
+
+a = [2, 3, 4]
+b = [5, 7, 6]
+print("Data Point:", a)
+print("Data Point:", b)
+print("Euclidean Distance =", round(euclidean(a, b), 3))
+
+
+--- Q3) VIVA ---
+Q: What is Best First Search?
+A: A heuristic search that expands the node with the lowest heuristic value first.
+
+Q: What is Euclidean distance?
+A: The straight-line distance between two points in n-dimensional space.
+
+
+################################################################################
+SLIP 18
+################################################################################
+
+--- Q1) A* Search (A to F) ---
+
+import heapq
+
+graph = {
+    'A': [('B', 1), ('C', 4)],
+    'B': [('D', 2), ('E', 5)],
+    'C': [('E', 1)],
+    'D': [('F', 3)],
+    'E': [('F', 2)],
+    'F': []
+}
+heuristic = {'A': 6, 'B': 5, 'C': 3, 'D': 3, 'E': 2, 'F': 0}
+
+def astar(start, goal):
+    heap = [(heuristic[start], 0, start, [start])]
+    visited = set()
+    while heap:
+        f, g, node, path = heapq.heappop(heap)
+        if node in visited: continue
+        visited.add(node)
+        if node == goal:
+            print("Path:", path, "Total Cost:", g)
+            return
+        for nbr, w in graph[node]:
+            if nbr not in visited:
+                heapq.heappush(heap, (g + w + heuristic[nbr], g + w, nbr, path + [nbr]))
+
+astar('A', 'F')
+
+
+--- Q2) ANN for Linear Regression ---
+
+import numpy as np
+from sklearn.neural_network import MLPRegressor
+from sklearn.metrics import mean_squared_error
+
+X = np.array([[1], [2], [3], [4], [5], [6], [7], [8]])
+y = np.array([2, 4, 6, 8, 10, 12, 14, 16])
+
+model = MLPRegressor(hidden_layer_sizes=(10,), max_iter=1000, random_state=42)
+model.fit(X, y)
+pred = model.predict(X)
+print("Predictions:", pred)
+print("MSE:", mean_squared_error(y, pred))
+
+
+--- Q2 ALT) SVM Decision Boundaries ---
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.svm import SVC
+from sklearn.datasets import make_blobs
+
+X, y = make_blobs(n_samples=100, centers=2, random_state=42)
+model = SVC(kernel='linear')
+model.fit(X, y)
+
+plt.scatter(X[:, 0], X[:, 1], c=y, cmap='bwr')
+ax = plt.gca()
+xlim = ax.get_xlim()
+w = model.coef_[0]
+a = -w[0] / w[1]
+xx = np.linspace(xlim[0], xlim[1])
+yy = a * xx - model.intercept_[0] / w[1]
+plt.plot(xx, yy, 'k-')
+plt.title("SVM Decision Boundary")
+plt.show()
+
+
+--- Q3) VIVA ---
+Q: What is A*?
+A: An informed search algorithm using f(n) = g(n) + h(n) to find the shortest path.
+
+Q: What is an ANN for regression?
+A: A neural network that predicts continuous numerical values instead of categories.
+
+
+################################################################################
+SLIP 19
+################################################################################
+
+--- Q1) 8-Puzzle using A* ---
+
+import heapq
+
+goal = (1, 2, 3, 4, 5, 6, 7, 8, 0)
+
+def h(state):
+    return sum(1 for i in range(9) if state[i] != goal[i] and state[i] != 0)
+
+def neighbors(state):
+    i = state.index(0)
+    res = []
+    for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
+        r, c = divmod(i, 3)
+        nr, nc = r + dr, c + dc
+        if 0 <= nr < 3 and 0 <= nc < 3:
+            ni = nr * 3 + nc
+            lst = list(state)
+            lst[i], lst[ni] = lst[ni], lst[i]
+            res.append(tuple(lst))
+    return res
+
+def astar(start):
+    heap = [(h(start), 0, start)]
+    visited = set()
+    while heap:
+        f, g, state = heapq.heappop(heap)
+        if state in visited: continue
+        visited.add(state)
+        if state == goal:
+            print("Solved in", g, "moves")
+            return
+        for nxt in neighbors(state):
+            if nxt not in visited:
+                heapq.heappush(heap, (g + 1 + h(nxt), g + 1, nxt))
+    print("No solution")
+
+start = (1, 2, 3, 4, 0, 5, 6, 7, 8)
+astar(start)
+
+
+--- Q2) CNN for Image Recognition (Orange vs Apple) ---
+
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+model = models.Sequential([
+    layers.Conv2D(32, (3,3), activation='relu', input_shape=(64,64,3)),
+    layers.MaxPooling2D((2,2)),
+    layers.Conv2D(64, (3,3), activation='relu'),
+    layers.MaxPooling2D((2,2)),
+    layers.Flatten(),
+    layers.Dense(64, activation='relu'),
+    layers.Dense(1, activation='sigmoid')
+])
+
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+print(model.summary())
+
+
+--- Q2 ALT) SVM Performance Analysis ---
+
+from sklearn import datasets
+from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+iris = datasets.load_iris()
+X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.3, random_state=42)
+
+model = SVC(kernel='rbf')
+model.fit(X_train, y_train)
+pred = model.predict(X_test)
+print("Accuracy:", accuracy_score(y_test, pred))
+print("Confusion Matrix:\n", confusion_matrix(y_test, pred))
+
+
+--- Q3) VIVA ---
+Q: What is the 8-puzzle problem?
+A: A sliding puzzle with 8 numbered tiles and one blank; goal is to arrange tiles
+   in order.
+
+Q: What is a CNN?
+A: Convolutional Neural Network - a deep learning model for image processing using
+   convolution and pooling layers.
+
+
+################################################################################
+SLIP 20
+################################################################################
+
+--- Q1) Hill Climbing ---
+
+def f(x):
+    return -x**2 + 4*x
+
+def hill_climb(start):
+    current = start
+    while True:
+        neighbors = [current - 0.1, current + 0.1]
+        best = max(neighbors, key=f)
+        if f(best) <= f(current):
+            break
+        current = best
+    return current, f(current)
+
+x, val = hill_climb(0)
+print("Max at x =", x, "value =", val)
+
+
+--- Q2) CNN for Object Detection ---
+
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+model = models.Sequential([
+    layers.Conv2D(32, (3,3), activation='relu', input_shape=(128,128,3)),
+    layers.MaxPooling2D((2,2)),
+    layers.Conv2D(64, (3,3), activation='relu'),
+    layers.MaxPooling2D((2,2)),
+    layers.Flatten(),
+    layers.Dense(128, activation='relu'),
+    layers.Dense(3, activation='softmax')
+])
+
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+print(model.summary())
+
+
+--- Q2 ALT) Supervised vs Unsupervised Learning ---
+
+from sklearn.datasets import make_classification, make_blobs
+from sklearn.linear_model import LogisticRegression
+from sklearn.cluster import KMeans
+
+X_sup, y_sup = make_classification(n_samples=100, n_features=2, n_informative=2,
+                                    n_redundant=0, random_state=42)
+lr = LogisticRegression(); lr.fit(X_sup, y_sup)
+print("Supervised Accuracy:", lr.score(X_sup, y_sup))
+
+X_unsup, _ = make_blobs(n_samples=100, centers=3, random_state=42)
+km = KMeans(n_clusters=3, n_init=10, random_state=42); km.fit(X_unsup)
+print("Unsupervised Cluster centers:\n", km.cluster_centers_)
+
+
+--- Q3) VIVA ---
+Q: What is Hill Climbing?
+A: A local search algorithm that moves to a better neighbor until no improvement.
+
+Q: Difference between supervised and unsupervised learning?
+A: Supervised uses labeled data; unsupervised finds patterns in unlabeled data.
+
+Q: What is a CNN used for?
+A: Image recognition, object detection, and computer vision tasks.
+
+
+################################################################################
+SLIP 21
+################################################################################
+
+--- Q1) Iterative Deepening Search (IDS) ---
+
+def dls(graph, node, goal, limit, visited=None, path=None):
+    if visited is None:
+        visited = set()
+        path = []
+    if node == goal:
+        print("Found:", path + [node])
+        return True
+    if limit <= 0:
+        return False
+    visited.add(node)
+    for nbr in graph[node]:
+        if nbr not in visited:
+            if dls(graph, nbr, goal, limit - 1, visited, path + [node]):
+                return True
+    return False
+
+def ids(graph, start, goal, max_depth):
+    for depth in range(max_depth + 1):
+        print(f"--- Depth {depth} ---")
+        if dls(graph, start, goal, depth):
+            return True
+    return False
+
+graph = {
+    'A': ['B', 'C'],
+    'B': ['D', 'E'],
+    'C': ['F'],
+    'D': [], 'E': [], 'F': []
+}
+ids(graph, 'A', 'F', 4)
+
+
+--- Q2) Gaussian Naive Bayes ---
+
+from sklearn.datasets import load_iris
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+X, y = load_iris(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+model = GaussianNB()
+model.fit(X_train, y_train)
+pred = model.predict(X_test)
+print("Accuracy:", accuracy_score(y_test, pred))
+
+
+--- Q2 ALT) Map Coloring using CSP ---
+
+def is_safe(node, color, graph, colors):
+    for nbr in graph[node]:
+        if nbr in colors and colors[nbr] == color:
+            return False
+    return True
+
+def backtrack(graph, nodes, colors, idx, m):
+    if idx == len(nodes):
+        return True
+    node = nodes[idx]
+    for c in range(1, m + 1):
+        if is_safe(node, c, graph, colors):
+            colors[node] = c
+            if backtrack(graph, nodes, colors, idx + 1, m):
+                return True
+            del colors[node]
+    return False
+
+graph = {
+    'A': ['B', 'C', 'E'],
+    'B': ['A', 'C', 'D'],
+    'C': ['A', 'B', 'F'],
+    'D': ['B', 'E'],
+    'E': ['A', 'D', 'F'],
+    'F': ['C', 'E']
+}
+colors = {}
+if backtrack(graph, list(graph.keys()), colors, 0, 3):
+    print("Colors:", colors)
+else:
+    print("No solution")
+
+
+--- Q3) VIVA ---
+Q: What is IDS?
+A: Iterative Deepening Search combines DFS space efficiency with BFS completeness
+   by running DLS with increasing depth limits.
+
+Q: What is Gaussian Naive Bayes?
+A: A Naive Bayes variant for continuous features assuming Gaussian distribution.
+
+
+################################################################################
+SLIP 22
+################################################################################
+
+--- Q1) Tower of Hanoi using State-Space ---
+
+def hanoi(n, source, auxiliary, target, moves):
+    if n == 1:
+        moves.append((source, target))
+        return
+    hanoi(n-1, source, target, auxiliary, moves)
+    moves.append((source, target))
+    hanoi(n-1, auxiliary, source, target, moves)
+
+moves = []
+hanoi(3, 'A', 'B', 'C', moves)
+print("Total moves:", len(moves))
+for m in moves:
+    print(f"Move disk from {m[0]} to {m[1]}")
+
+
+--- Q2) N-Queens using Backtracking ---
+
+def is_safe(board, row, col, n):
+    for i in range(col):
+        if board[row][i] == 1:
+            return False
+    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+        if board[i][j] == 1:
+            return False
+    for i, j in zip(range(row, n), range(col, -1, -1)):
+        if board[i][j] == 1:
+            return False
+    return True
+
+def solve(board, col, n):
+    if col >= n:
+        return True
+    for i in range(n):
+        if is_safe(board, i, col, n):
+            board[i][col] = 1
+            if solve(board, col + 1, n):
+                return True
+            board[i][col] = 0
+    return False
+
+n = 4
+board = [[0]*n for _ in range(n)]
+if solve(board, 0, n):
+    for row in board:
+        print(row)
+else:
+    print("No solution")
+
+
+--- Q2 ALT) Rule-Based Expert System ---
+
+def expert_system():
+    print("=== Simple Medical Expert System ===")
+    temp = float(input("Enter body temperature (C): "))
+    cough = input("Do you have cough? (yes/no): ").lower()
+
+    if temp > 38:
+        if cough == "yes":
+            print("Diagnosis: Flu")
+        else:
+            print("Diagnosis: Fever")
+    else:
+        print("Diagnosis: No major illness")
+
+expert_system()
+
+
+--- Q3) VIVA ---
+Q: What is the Tower of Hanoi?
+A: A mathematical puzzle with 3 pegs and n disks; goal is to move all disks from
+   source to target without placing a larger disk on a smaller one.
+
+Q: What is the N-Queens problem?
+A: A CSP where N queens must be placed on an N x N board so no two attack each other.
+
+
+################################################################################
+SLIP 23
+################################################################################
+
+--- Q1) Hill Climbing for F(x) = -x^2 + 4x ---
+
+def f(x):
+    return -x**2 + 4*x
+
+def hill_climb(start):
+    current = start
+    while True:
+        neighbors = [current - 0.1, current + 0.1]
+        best = max(neighbors, key=f)
+        if f(best) <= f(current):
+            break
+        current = best
+    return current, f(current)
+
+x, val = hill_climb(0)
+print("Max at x =", x, "value =", val)
+
+
+--- Q2) Map Coloring using CSP ---
+
+def is_safe(node, color, graph, colors):
+    for nbr in graph[node]:
+        if nbr in colors and colors[nbr] == color:
+            return False
+    return True
+
+def backtrack(graph, nodes, colors, idx, m):
+    if idx == len(nodes):
+        return True
+    node = nodes[idx]
+    for c in range(1, m + 1):
+        if is_safe(node, c, graph, colors):
+            colors[node] = c
+            if backtrack(graph, nodes, colors, idx + 1, m):
+                return True
+            del colors[node]
+    return False
+
+graph = {
+    'A': ['B', 'C'],
+    'B': ['A', 'D'],
+    'C': ['A', 'E'],
+    'D': ['B', 'E'],
+    'E': ['C', 'D']
+}
+colors = {}
+if backtrack(graph, list(graph.keys()), colors, 0, 3):
+    print("Colors:", colors)
+else:
+    print("No solution")
+
+
+--- Q2 ALT) Supervised vs Unsupervised Learning ---
+
+from sklearn.datasets import make_classification, make_blobs
+from sklearn.linear_model import LogisticRegression
+from sklearn.cluster import KMeans
+
+X_sup, y_sup = make_classification(n_samples=100, n_features=2, n_informative=2,
+                                    n_redundant=0, random_state=42)
+lr = LogisticRegression(); lr.fit(X_sup, y_sup)
+print("Supervised Accuracy:", lr.score(X_sup, y_sup))
+
+X_unsup, _ = make_blobs(n_samples=100, centers=3, random_state=42)
+km = KMeans(n_clusters=3, n_init=10, random_state=42); km.fit(X_unsup)
+print("Unsupervised Cluster centers:\n", km.cluster_centers_)
+
+
+--- Q3) VIVA ---
+Q: What is Hill Climbing?
+A: A local search that iteratively improves the current state by moving to a
+   better neighbor.
+
+Q: What is the Map Coloring Problem?
+A: Assigning colors to regions so adjacent regions have different colors.
+
+
+################################################################################
+SLIP 24
+################################################################################
+
+--- Q1) A* Search (A to E) ---
+
+import heapq
+
+graph = {
+    'A': [('B', 2), ('C', 4)],
+    'B': [('D', 1), ('E', 5)],
+    'C': [('D', 2)],
+    'D': [('E', 3)],
+    'E': []
+}
+heuristic = {'A': 7, 'B': 6, 'C': 3, 'D': 2, 'E': 0}
+
+def astar(start, goal):
+    heap = [(heuristic[start], 0, start, [start])]
+    visited = set()
+    while heap:
+        f, g, node, path = heapq.heappop(heap)
+        if node in visited: continue
+        visited.add(node)
+        if node == goal:
+            print("Path:", path, "Total Cost:", g)
+            return
+        for nbr, w in graph[node]:
+            if nbr not in visited:
+                heapq.heappush(heap, (g + w + heuristic[nbr], g + w, nbr, path + [nbr]))
+
+astar('A', 'E')
+
+
+--- Q2) K-Means Clustering ---
+
+from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+X, _ = make_blobs(n_samples=300, centers=3, cluster_std=1.0, random_state=42)
+km = KMeans(n_clusters=3, n_init=10, random_state=42)
+labels = km.fit_predict(X)
+
+plt.scatter(X[:, 0], X[:, 1], c=labels, cmap='viridis')
+plt.scatter(km.cluster_centers_[:, 0], km.cluster_centers_[:, 1],
+            s=200, c='red', marker='X')
+plt.title("K-Means Clustering")
+plt.show()
+
+
+--- Q2 ALT) CNN on MNIST ---
+
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+x_train = x_train.reshape(-1, 28, 28, 1) / 255.0
+x_test = x_test.reshape(-1, 28, 28, 1) / 255.0
+
+model = models.Sequential([
+    layers.Conv2D(32, (3,3), padding='same', activation='relu', input_shape=(28,28,1)),
+    layers.MaxPooling2D((2,2)),
+    layers.Dropout(0.2),
+    layers.Conv2D(64, (3,3), padding='same', activation='relu'),
+    layers.MaxPooling2D((2,2)),
+    layers.Dropout(0.2),
+    layers.Flatten(),
+    layers.Dense(128, activation='relu'),
+    layers.Dense(10, activation='softmax')
+])
+
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
+              loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+model.fit(x_train, y_train, epochs=10, batch_size=128, validation_split=0.2)
+
+loss, acc = model.evaluate(x_test, y_test)
+print("Test Accuracy:", acc)
+
+
+--- Q3) VIVA ---
+Q: What is A*?
+A: An informed search algorithm using f(n) = g(n) + h(n) to find shortest path.
+
+Q: What is K-Means?
+A: An unsupervised clustering algorithm partitioning data into K clusters.
+
+Q: What is a CNN?
+A: Convolutional Neural Network for image processing and recognition tasks.
+
+
+################################################################################
+SLIP 25
+################################################################################
+
+--- Q1) AO* Algorithm ---
+
+def ao_star():
+    print("=== AO* Algorithm (AND-OR Graph) ===")
+    # Simplified: compute cost of each node
+    # OR node: min of children; AND node: sum of children
+    costs = {'I': 2, 'J': 1, 'F': 2, 'G': 1}
+    # D and E are OR nodes
+    costs['D'] = costs['I']
+    costs['E'] = costs['J']
+    # B is AND node
+    costs['B'] = 1 + costs['D'] + 4 + costs['E']
+    # C is OR node
+    costs['C'] = min(2 + costs['F'], 5 + costs['G'])
+    # A is OR node
+    costs['A'] = min(2 + costs['B'], 3 + costs['C'])
+    print("Optimal cost from A:", costs['A'])
+    print("Costs:", costs)
+
+ao_star()
+
+
+--- Q2) Minimax Algorithm ---
+
+def minimax(depth, node, is_max, values, max_depth):
+    if depth == max_depth:
+        return values[node]
+    if is_max:
+        return max(minimax(depth+1, node*2, False, values, max_depth),
+                   minimax(depth+1, node*2+1, False, values, max_depth))
+    else:
+        return min(minimax(depth+1, node*2, True, values, max_depth),
+                   minimax(depth+1, node*2+1, True, values, max_depth))
+
+# Tree: A(MAX) -> B(MIN), C(MIN); B -> D=3, E=5; C -> F=2, G=9
+values = [3, 5, 2, 9]
+print("Optimal value for MAX:", minimax(0, 0, True, values, 2))
+
+
+--- Q2 ALT) Forward Chaining ---
+
+facts = {"temperature_high", "cough"}
+rules = [
+    ({"temperature_high"}, "fever"),
+    ({"fever", "cough"}, "flu"),
+    ({"flu"}, "rest_recommended")
+]
+
+changed = True
+while changed:
+    changed = False
+    for conditions, conclusion in rules:
+        if conditions.issubset(facts) and conclusion not in facts:
+            facts.add(conclusion)
+            print("Derived:", conclusion)
+            changed = True
+
+print("Final facts:", facts)
+
+
+--- Q3) VIVA ---
+Q: What is AO*?
+A: An informed search algorithm for AND-OR graphs where AND nodes require all
+   children and OR nodes require one child.
+
+Q: What is Minimax?
+A: A decision algorithm for two-player games; MAX maximizes, MIN minimizes.
+
+Q: What is Forward Chaining?
+A: A data-driven reasoning method that derives new facts from known facts using rules.
+
+
+================================================================================
+END OF FILE
+CS-321-VSC-P All Slip Solutions
+================================================================================
